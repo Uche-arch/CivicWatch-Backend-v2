@@ -22,8 +22,7 @@ app.get("/", (req, res) => {
   res.send("Backend is running");
 });
 
-// Log MongoDB URI for debugging
-console.log("Mongo URI:", process.env.MONGO_URI);
+
 
 // Start server
 mongoose
