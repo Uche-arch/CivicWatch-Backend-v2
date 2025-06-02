@@ -11,6 +11,9 @@ const postRoutes = require("./routes/postRoutes");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// const forgotPasswordRoutes = require("./routes/forgotPassword");
+// app.use("/api/password", forgotPasswordRoutes);
+
 app.use(cors());
 app.use(express.json());
 app.use("/api/auth", authRoutes);

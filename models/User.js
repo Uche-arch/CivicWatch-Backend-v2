@@ -4,6 +4,8 @@ const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   email: { type: String, required: true, unique: true }, // Add email as a required and unique field
   password: { type: String, required: true },
+  resetToken: String,
+  resetTokenExpiry: Date,
 });
 
 module.exports = mongoose.model("User", userSchema);
