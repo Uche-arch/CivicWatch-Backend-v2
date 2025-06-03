@@ -16,12 +16,6 @@ exports.signup = async (req, res) => {
       return res.status(400).json({ msg: "Username already taken" });
     }
 
-    // Check if the email already exists
-    const existingEmail = await User.findOne({ email });
-    if (existingEmail) {
-      return res.status(400).json({ msg: "Email already taken" });
-    }
-
     // Hash the password
     const hashed = await bcrypt.hash(password, 10);
 
