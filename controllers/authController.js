@@ -81,6 +81,7 @@ exports.requestPasswordReset = async (req, res) => {
 
     res.status(200).json({ message: "Reset link sent to email." });
   } catch (err) {
+    console.error("❌ Error sending reset email:", err);
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
