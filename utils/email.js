@@ -17,7 +17,7 @@ const sendResetEmail = async (to, resetLink) => {
   });
 
   await transporter.sendMail({
-    from: `"CrimeMap Support" <${process.env.EMAIL_USER}>`,
+    from: `"CivicWatch Support" <${process.env.EMAIL_USER}>`,
     to,
     subject: "Reset your CivicWatch password",
     html: `
