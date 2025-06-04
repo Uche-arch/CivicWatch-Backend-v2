@@ -21,7 +21,7 @@ const sendResetEmail = async (to, resetLink) => {
     to,
     subject: "Reset your CivicWatch password",
     html: `
-      <p>Hello ${user.username},</p>
+      <p>Hello,</p>
       <p>We received a request to reset your password for your CivicWatch account.</p>
       <p>If you made this request, you can reset your password by clicking the link below:</p>
       <p><a href="${resetLink}">Reset your password</a></p>
