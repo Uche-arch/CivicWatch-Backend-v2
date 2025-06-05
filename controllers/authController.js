@@ -75,7 +75,7 @@ exports.requestPasswordReset = async (req, res) => {
     user.resetTokenExpiry = Date.now() + 1000 * 60 * 15; // 15 minutes
     await user.save();
 
-    const resetLink = `http://127.0.0.1:5502/frontend/resetPassword.html?token=${token}`;
+    const resetLink = `https://phylax360.netlify.app/resetPassword.html?token=${token}`;
 
 
     await sendResetEmail(email, resetLink);
