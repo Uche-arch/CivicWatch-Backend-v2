@@ -1,6 +1,7 @@
 // backend/server.js
 require("dotenv").config(); // Ensure dotenv is at the top
-
+const cron = require("node-cron");         // ✅ Don't forget this
+const fetch = require("node-fetch");       // ✅ If you’re pinging a URL
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
