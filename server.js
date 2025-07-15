@@ -1,6 +1,5 @@
 // backend/server.js
 require("dotenv").config(); // Ensure dotenv is at the top
-const cron = require("node-cron");         // ✅ Don't forget this
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -26,10 +25,7 @@ app.get("/", (req, res) => {
 });
 
 
-// ✅ Keep-alive ping route
-app.get("/ping", (req, res) => {
-  res.send("pong");
-});
+
 
 
 
@@ -45,17 +41,6 @@ mongoose
     app.listen(PORT, () =>
       console.log(`🚀 Server running on port ${PORT}`)
     );
-
-    // ✅ Keep backend awake with node-cron
-    cron.schedule("*/4 * * * *", async () => {
-      try {
-        const res = await fetch("https://civicwatch-backend.onrender.com/ping");
-        const text = await res.text();
-        console.log(`[Self-Ping] ✅ ${text} at ${new Date().toLocaleTimeString()}`);
-      } catch (err) {
-        console.error(`[Self-Ping] ❌ Failed: ${err.message}`);
-      }
-    });
   })
   .catch((err) =>
     console.error("❌ Failed to connect to MongoDB:", err.message)
