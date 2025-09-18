@@ -8,23 +8,23 @@ exports.getPins = async (req, res) => {
     if (req.user) {
       const user = await User.findById(req.user.id);
 
-      // 1️⃣ capture old lastVisit BEFORE updating
-      lastVisit = user.lastVisit;
+      // Save the OLD lastVisit before updating
+      lastVisit = user.lastVisit ? user.lastVisit : null;
 
-      // 2️⃣ update after sending response (don’t block)
+      // Update AFTER sending response
       user.lastVisit = new Date();
-      await user.save();
+      user.save(); // don’t await, so response uses old one
     }
 
     const pins = await Pin.find().sort({ createdAt: -1 });
 
-    // 3️⃣ send old lastVisit back to frontend
-    res.json({ pins, lastVisit });
+    res.json({ pins, lastVisit }); // send old value
   } catch (err) {
     console.error(err);
     res.status(500).json({ msg: "Failed to fetch pins" });
   }
 };
+
 
 exports.addPin = async (req, res) => {
   const { lat, lng } = req.body;
