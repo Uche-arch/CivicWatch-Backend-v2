@@ -8,7 +8,18 @@ const {
   updateLastVisit,
 } = require("../controllers/pinController");
 
-router.get("/", getPins);
+router.get(
+  "/",
+  (req, res, next) => {
+    auth(req, res, (err) => {
+      if (err) {
+        req.user = null; // guest mode
+      }
+      next();
+    });
+  },
+  getPins
+);
 router.post("/", auth, addPin);
 router.delete("/:id", auth, removePin);
 router.post("/last-visit", auth, updateLastVisit);
