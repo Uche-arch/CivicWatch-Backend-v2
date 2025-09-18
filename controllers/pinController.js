@@ -1,59 +1,5 @@
 const Pin = require("../models/Pin");
-const User = require("../models/User"); // 👈 import user model
-
-// // -------------------- GET ALL PINS --------------------
-// exports.getPins = async (req, res) => {
-//   try {
-//     let lastVisit = null;
-
-//     // if (req.user) {
-//     //   const user = await User.findById(req.user.id);
-
-//     //   if (user) {
-//     //     // 1️⃣ capture old lastVisit BEFORE updating
-//     //     lastVisit = user.lastVisit;
-//     //     console.log("DEBUG: User lastVisit BEFORE update:", lastVisit);
-
-//     //     // 2️⃣ update to now
-//     //     user.lastVisit = new Date();
-//     //     await user.save();
-//     //     console.log("DEBUG: User lastVisit AFTER update:", user.lastVisit);
-//     //   } else {
-//     //     console.log("DEBUG: No user found for id:", req.user.id);
-//     //   }
-//     // } 
-//     if (req.user) {
-//       const user = await User.findById(req.user.id);
-//       if (user) {
-//         // If lastVisit is null, set it to the account creation date
-//         lastVisit = user.lastVisit || user.createdAt; // fallback
-//         user.lastVisit = new Date();
-//         await user.save();
-//       }
-//     } else {
-//       console.log("DEBUG: Guest user, no lastVisit");
-//     }
-
-//     const pins = await Pin.find().sort({ createdAt: -1 });
-
-//     // 3️⃣ debug each pin
-//     pins.forEach((pin) => {
-//       console.log(
-//         `DEBUG: Pin by ${pin.username} at ${pin.createdAt} (pinTime=${new Date(
-//           pin.createdAt
-//         ).getTime()})`
-//       );
-//     });
-
-//     // 4️⃣ send old lastVisit back to frontend
-//     res.json({ pins, lastVisit });
-//   } catch (err) {
-//     console.error("ERROR in getPins:", err);
-//     res.status(500).json({ msg: "Failed to fetch pins" });
-//   }
-// };
-
-
+const User = require("../models/User");
 
 // -------------------- GET ALL PINS --------------------
 exports.getPins = async (req, res) => {
@@ -64,7 +10,7 @@ exports.getPins = async (req, res) => {
       const user = await User.findById(req.user.id);
 
       if (user) {
-        // Use lastVisit if exists; otherwise fallback to account creation date
+        // Use lastVisit if exists; fallback to account creation or epoch
         lastVisit = user.lastVisit || user.createdAt || new Date(0);
         console.log("DEBUG: User lastVisit BEFORE update:", lastVisit);
 
@@ -79,10 +25,8 @@ exports.getPins = async (req, res) => {
       console.log("DEBUG: Guest user, no lastVisit");
     }
 
-    // Fetch all pins, newest first
     const pins = await Pin.find().sort({ createdAt: -1 });
 
-    // Debug each pin
     pins.forEach((pin) => {
       console.log(
         `DEBUG: Pin by ${pin.username} at ${pin.createdAt} (pinTime=${new Date(
@@ -91,14 +35,12 @@ exports.getPins = async (req, res) => {
       );
     });
 
-    // Send pins + old lastVisit back to frontend
     res.json({ pins, lastVisit });
   } catch (err) {
     console.error("ERROR in getPins:", err);
     res.status(500).json({ msg: "Failed to fetch pins" });
   }
 };
-
 
 // -------------------- ADD PIN --------------------
 exports.addPin = async (req, res) => {
@@ -137,30 +79,17 @@ exports.removePin = async (req, res) => {
   }
 };
 
-// -------------------- UPDATE LAST VISIT (OPTIONAL) --------------------
+// -------------------- UPDATE LAST VISIT --------------------
 exports.updateLastVisit = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
-
-    if (!user) {
-      return res.status(404).json({ msg: "User not found" });
-    }
+    if (!user) return res.status(404).json({ msg: "User not found" });
 
     const previousVisit = user.lastVisit;
     user.lastVisit = new Date();
     await user.save();
 
-    console.log(
-      "DEBUG: updateLastVisit → old:",
-      previousVisit,
-      "new:",
-      user.lastVisit
-    );
-
-    res.json({
-      msg: "Last visit updated",
-      lastVisit: previousVisit || null,
-    });
+    res.json({ msg: "Last visit updated", lastVisit: previousVisit || null });
   } catch (err) {
     console.error("ERROR in updateLastVisit:", err);
     res.status(500).json({ msg: "Failed to update last visit" });
