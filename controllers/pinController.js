@@ -1,9 +1,7 @@
 const Pin = require("../models/Pin");
 const User = require("../models/User"); // 👈 import user model
 
-
-
-
+// -------------------- GET ALL PINS --------------------
 exports.getPins = async (req, res) => {
   try {
     let lastVisit = null;
@@ -11,14 +9,20 @@ exports.getPins = async (req, res) => {
     if (req.user) {
       const user = await User.findById(req.user.id);
 
-      // 1️⃣ capture old lastVisit BEFORE updating
-      lastVisit = user.lastVisit;
-      console.log("DEBUG: User lastVisit BEFORE update:", lastVisit);
+      if (user) {
+        // 1️⃣ capture old lastVisit BEFORE updating
+        lastVisit = user.lastVisit;
+        console.log("DEBUG: User lastVisit BEFORE update:", lastVisit);
 
-      // 2️⃣ update to now
-      user.lastVisit = new Date();
-      await user.save();
-      console.log("DEBUG: User lastVisit AFTER update:", user.lastVisit);
+        // 2️⃣ update to now
+        user.lastVisit = new Date();
+        await user.save();
+        console.log("DEBUG: User lastVisit AFTER update:", user.lastVisit);
+      } else {
+        console.log("DEBUG: No user found for id:", req.user.id);
+      }
+    } else {
+      console.log("DEBUG: Guest user, no lastVisit");
     }
 
     const pins = await Pin.find().sort({ createdAt: -1 });
@@ -40,6 +44,7 @@ exports.getPins = async (req, res) => {
   }
 };
 
+// -------------------- ADD PIN --------------------
 exports.addPin = async (req, res) => {
   const { lat, lng } = req.body;
   try {
@@ -51,11 +56,13 @@ exports.addPin = async (req, res) => {
     });
     await newPin.save();
     res.status(201).json(newPin);
-  } catch {
+  } catch (err) {
+    console.error("ERROR in addPin:", err);
     res.status(500).json({ msg: "Failed to add pin" });
   }
 };
 
+// -------------------- REMOVE PIN --------------------
 exports.removePin = async (req, res) => {
   const pinId = req.params.id;
   try {
@@ -68,7 +75,38 @@ exports.removePin = async (req, res) => {
 
     await Pin.findByIdAndDelete(pinId);
     res.json({ msg: "Pin removed" });
-  } catch {
+  } catch (err) {
+    console.error("ERROR in removePin:", err);
     res.status(500).json({ msg: "Failed to remove pin" });
+  }
+};
+
+// -------------------- UPDATE LAST VISIT (OPTIONAL) --------------------
+exports.updateLastVisit = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    const previousVisit = user.lastVisit;
+    user.lastVisit = new Date();
+    await user.save();
+
+    console.log(
+      "DEBUG: updateLastVisit → old:",
+      previousVisit,
+      "new:",
+      user.lastVisit
+    );
+
+    res.json({
+      msg: "Last visit updated",
+      lastVisit: previousVisit || null,
+    });
+  } catch (err) {
+    console.error("ERROR in updateLastVisit:", err);
+    res.status(500).json({ msg: "Failed to update last visit" });
   }
 };

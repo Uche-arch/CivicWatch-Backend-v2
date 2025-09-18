@@ -8,6 +8,7 @@ const {
   updateLastVisit,
 } = require("../controllers/pinController");
 
+// Allow guests for GET / (pins)
 router.get(
   "/",
   (req, res, next) => {
@@ -20,8 +21,11 @@ router.get(
   },
   getPins
 );
+
 router.post("/", auth, addPin);
 router.delete("/:id", auth, removePin);
+
+// optional endpoint
 router.post("/last-visit", auth, updateLastVisit);
 
 module.exports = router;
