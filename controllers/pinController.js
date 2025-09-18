@@ -1,30 +1,27 @@
 const Pin = require("../models/Pin");
+const User = require("../models/User"); // 👈 import user model
 
 exports.getPins = async (req, res) => {
   try {
-    // If user is logged in, include lastVisit
     let lastVisit = null;
+
     if (req.user) {
-      lastVisit = req.user.lastVisit;
+      const user = await User.findById(req.user.id);
+      lastVisit = user.lastVisit;
+
+      // update lastVisit to now
+      user.lastVisit = new Date();
+      await user.save();
     }
 
     const pins = await Pin.find().sort({ createdAt: -1 });
 
     res.json({ pins, lastVisit });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ msg: "Failed to fetch pins" });
   }
 };
-
-exports.updateLastVisit = async (req, res) => {
-  try {
-    await User.findByIdAndUpdate(req.user.id, { lastVisit: new Date() });
-    res.json({ msg: "Last visit updated" });
-  } catch (err) {
-    res.status(500).json({ msg: "Failed to update last visit" });
-  }
-};
-
 
 exports.addPin = async (req, res) => {
   const { lat, lng } = req.body;
