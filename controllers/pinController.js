@@ -1,42 +1,88 @@
 const Pin = require("../models/Pin");
 const User = require("../models/User"); // 👈 import user model
 
+// // -------------------- GET ALL PINS --------------------
+// exports.getPins = async (req, res) => {
+//   try {
+//     let lastVisit = null;
+
+//     // if (req.user) {
+//     //   const user = await User.findById(req.user.id);
+
+//     //   if (user) {
+//     //     // 1️⃣ capture old lastVisit BEFORE updating
+//     //     lastVisit = user.lastVisit;
+//     //     console.log("DEBUG: User lastVisit BEFORE update:", lastVisit);
+
+//     //     // 2️⃣ update to now
+//     //     user.lastVisit = new Date();
+//     //     await user.save();
+//     //     console.log("DEBUG: User lastVisit AFTER update:", user.lastVisit);
+//     //   } else {
+//     //     console.log("DEBUG: No user found for id:", req.user.id);
+//     //   }
+//     // } 
+//     if (req.user) {
+//       const user = await User.findById(req.user.id);
+//       if (user) {
+//         // If lastVisit is null, set it to the account creation date
+//         lastVisit = user.lastVisit || user.createdAt; // fallback
+//         user.lastVisit = new Date();
+//         await user.save();
+//       }
+//     } else {
+//       console.log("DEBUG: Guest user, no lastVisit");
+//     }
+
+//     const pins = await Pin.find().sort({ createdAt: -1 });
+
+//     // 3️⃣ debug each pin
+//     pins.forEach((pin) => {
+//       console.log(
+//         `DEBUG: Pin by ${pin.username} at ${pin.createdAt} (pinTime=${new Date(
+//           pin.createdAt
+//         ).getTime()})`
+//       );
+//     });
+
+//     // 4️⃣ send old lastVisit back to frontend
+//     res.json({ pins, lastVisit });
+//   } catch (err) {
+//     console.error("ERROR in getPins:", err);
+//     res.status(500).json({ msg: "Failed to fetch pins" });
+//   }
+// };
+
+
+
 // -------------------- GET ALL PINS --------------------
 exports.getPins = async (req, res) => {
   try {
     let lastVisit = null;
 
-    // if (req.user) {
-    //   const user = await User.findById(req.user.id);
-
-    //   if (user) {
-    //     // 1️⃣ capture old lastVisit BEFORE updating
-    //     lastVisit = user.lastVisit;
-    //     console.log("DEBUG: User lastVisit BEFORE update:", lastVisit);
-
-    //     // 2️⃣ update to now
-    //     user.lastVisit = new Date();
-    //     await user.save();
-    //     console.log("DEBUG: User lastVisit AFTER update:", user.lastVisit);
-    //   } else {
-    //     console.log("DEBUG: No user found for id:", req.user.id);
-    //   }
-    // } 
     if (req.user) {
       const user = await User.findById(req.user.id);
+
       if (user) {
-        // If lastVisit is null, set it to the account creation date
-        lastVisit = user.lastVisit || user.createdAt; // fallback
+        // Use lastVisit if exists; otherwise fallback to account creation date
+        lastVisit = user.lastVisit || user.createdAt || new Date(0);
+        console.log("DEBUG: User lastVisit BEFORE update:", lastVisit);
+
+        // Update lastVisit to now
         user.lastVisit = new Date();
         await user.save();
+        console.log("DEBUG: User lastVisit AFTER update:", user.lastVisit);
+      } else {
+        console.log("DEBUG: No user found for id:", req.user.id);
       }
     } else {
       console.log("DEBUG: Guest user, no lastVisit");
     }
 
+    // Fetch all pins, newest first
     const pins = await Pin.find().sort({ createdAt: -1 });
 
-    // 3️⃣ debug each pin
+    // Debug each pin
     pins.forEach((pin) => {
       console.log(
         `DEBUG: Pin by ${pin.username} at ${pin.createdAt} (pinTime=${new Date(
@@ -45,13 +91,14 @@ exports.getPins = async (req, res) => {
       );
     });
 
-    // 4️⃣ send old lastVisit back to frontend
+    // Send pins + old lastVisit back to frontend
     res.json({ pins, lastVisit });
   } catch (err) {
     console.error("ERROR in getPins:", err);
     res.status(500).json({ msg: "Failed to fetch pins" });
   }
 };
+
 
 // -------------------- ADD PIN --------------------
 exports.addPin = async (req, res) => {
