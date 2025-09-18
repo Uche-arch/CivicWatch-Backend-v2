@@ -8,25 +8,27 @@ const {
   updateLastVisit,
 } = require("../controllers/pinController");
 
-// Guest-friendly GET /api/pins
-router.get("/", (req, res, next) => {
-  const authHeader = req.headers.authorization;
+exports.getPins = async (req, res) => {
+  try {
+    const pins = await Pin.find().sort({ createdAt: -1 });
 
-  if (authHeader && authHeader.startsWith("Bearer ")) {
-    const token = authHeader.split(" ")[1];
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = decoded; // ✅ attach user
-    } catch (err) {
-      console.log("DEBUG: Invalid token in guest GET /pins");
-      req.user = null;
+    let lastVisit = null;
+
+    if (req.user) {
+      const user = await User.findById(req.user.id);
+      if (user) {
+        lastVisit = user.lastVisit;
+        user.lastVisit = new Date();
+        await user.save();
+      }
     }
-  } else {
-    req.user = null; // ✅ guest mode
-  }
 
-  next();
-}, getPins);
+    res.json({ pins, lastVisit });
+  } catch (err) {
+    console.error("Error in getPins:", err.message);
+    res.status(500).json({ error: "Server error" });
+  }
+};
 
 router.post("/", auth, addPin);
 router.delete("/:id", auth, removePin);
