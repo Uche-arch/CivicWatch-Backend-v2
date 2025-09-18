@@ -2,45 +2,79 @@ const Pin = require("../models/Pin");
 const User = require("../models/User");
 
 // -------------------- GET ALL PINS --------------------
+// exports.getPins = async (req, res) => {
+//   try {
+//     let lastVisit = null;
+
+//     if (req.user) {
+//       const user = await User.findById(req.user.id);
+
+//       if (user) {
+//         // Use lastVisit if exists; fallback to account creation or epoch
+//         lastVisit = user.lastVisit || user.createdAt || new Date(0);
+//         console.log("DEBUG: User lastVisit BEFORE update:", lastVisit);
+
+//         // Update lastVisit to now
+//         user.lastVisit = new Date();
+//         await user.save();
+//         console.log("DEBUG: User lastVisit AFTER update:", user.lastVisit);
+//       } else {
+//         console.log("DEBUG: No user found for id:", req.user.id);
+//       }
+//     } else {
+//       console.log("DEBUG: Guest user, no lastVisit");
+//     }
+
+//     const pins = await Pin.find().sort({ createdAt: -1 });
+
+//     pins.forEach((pin) => {
+//       console.log(
+//         `DEBUG: Pin by ${pin.username} at ${pin.createdAt} (pinTime=${new Date(
+//           pin.createdAt
+//         ).getTime()})`
+//       );
+//     });
+
+//     res.json({ pins, lastVisit });
+//   } catch (err) {
+//     console.error("ERROR in getPins:", err);
+//     res.status(500).json({ msg: "Failed to fetch pins" });
+//   }
+// };
+
+
 exports.getPins = async (req, res) => {
   try {
     let lastVisit = null;
+    let isFirstLogin = false; // NEW FLAG
 
     if (req.user) {
       const user = await User.findById(req.user.id);
 
       if (user) {
-        // Use lastVisit if exists; fallback to account creation or epoch
-        lastVisit = user.lastVisit || user.createdAt || new Date(0);
-        console.log("DEBUG: User lastVisit BEFORE update:", lastVisit);
+        // Determine if this is the first login ever
+        if (!user.lastVisit) {
+          isFirstLogin = true;
+          lastVisit = user.createdAt || new Date(0);
+        } else {
+          lastVisit = user.lastVisit;
+        }
 
         // Update lastVisit to now
         user.lastVisit = new Date();
         await user.save();
-        console.log("DEBUG: User lastVisit AFTER update:", user.lastVisit);
-      } else {
-        console.log("DEBUG: No user found for id:", req.user.id);
       }
-    } else {
-      console.log("DEBUG: Guest user, no lastVisit");
     }
 
     const pins = await Pin.find().sort({ createdAt: -1 });
 
-    pins.forEach((pin) => {
-      console.log(
-        `DEBUG: Pin by ${pin.username} at ${pin.createdAt} (pinTime=${new Date(
-          pin.createdAt
-        ).getTime()})`
-      );
-    });
-
-    res.json({ pins, lastVisit });
+    res.json({ pins, lastVisit, isFirstLogin }); // SEND FLAG TO FRONTEND
   } catch (err) {
     console.error("ERROR in getPins:", err);
     res.status(500).json({ msg: "Failed to fetch pins" });
   }
 };
+
 
 // -------------------- ADD PIN --------------------
 exports.addPin = async (req, res) => {
