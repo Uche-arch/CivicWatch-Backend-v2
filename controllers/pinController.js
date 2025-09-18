@@ -6,20 +6,29 @@ exports.getPins = async (req, res) => {
   try {
     let lastVisit = null;
 
+    // if (req.user) {
+    //   const user = await User.findById(req.user.id);
+
+    //   if (user) {
+    //     // 1️⃣ capture old lastVisit BEFORE updating
+    //     lastVisit = user.lastVisit;
+    //     console.log("DEBUG: User lastVisit BEFORE update:", lastVisit);
+
+    //     // 2️⃣ update to now
+    //     user.lastVisit = new Date();
+    //     await user.save();
+    //     console.log("DEBUG: User lastVisit AFTER update:", user.lastVisit);
+    //   } else {
+    //     console.log("DEBUG: No user found for id:", req.user.id);
+    //   }
+    // } 
     if (req.user) {
       const user = await User.findById(req.user.id);
-
       if (user) {
-        // 1️⃣ capture old lastVisit BEFORE updating
-        lastVisit = user.lastVisit;
-        console.log("DEBUG: User lastVisit BEFORE update:", lastVisit);
-
-        // 2️⃣ update to now
+        // If lastVisit is null, set it to the account creation date
+        lastVisit = user.lastVisit || user.createdAt; // fallback
         user.lastVisit = new Date();
         await user.save();
-        console.log("DEBUG: User lastVisit AFTER update:", user.lastVisit);
-      } else {
-        console.log("DEBUG: No user found for id:", req.user.id);
       }
     } else {
       console.log("DEBUG: Guest user, no lastVisit");
