@@ -7,15 +7,18 @@ exports.getPins = async (req, res) => {
 
     if (req.user) {
       const user = await User.findById(req.user.id);
+
+      // 1️⃣ capture old lastVisit BEFORE updating
       lastVisit = user.lastVisit;
 
-      // update lastVisit to now
+      // 2️⃣ update after sending response (don’t block)
       user.lastVisit = new Date();
       await user.save();
     }
 
     const pins = await Pin.find().sort({ createdAt: -1 });
 
+    // 3️⃣ send old lastVisit back to frontend
     res.json({ pins, lastVisit });
   } catch (err) {
     console.error(err);
